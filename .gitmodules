@@ -1,0 +1,3 @@
+[submodule "v2d/video2dataset"]
+	path = v2d/video2dataset
+	url = https://github.com/swiss-ai/video2dataset.git

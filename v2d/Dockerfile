@@ -25,7 +25,9 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # install decord
 RUN git clone --recursive https://github.com/dmlc/decord
+# Go to fixed commit (last commit we tested this on) and then build it.
 RUN cd decord \
+    && git checkout d2e56190286ae394032a8141885f76d5372bd44b \
     && mkdir build && cd build \
     # && cmake .. -DUSE_CUDA=ON -DCMAKE_BUILD_TYPE=Release \
     # Use this if we don't want GPU acceleration
@@ -37,7 +39,8 @@ RUN cd decord/python && python3 setup.py install
 RUN python -m pip install --upgrade pip
 
 # Install v2d library
-RUN git clone -b kdu/todi --single-branch https://github.com/swiss-ai/video2dataset.git
+# Better to COPY than git clone because git clone is unaware when the repo changes. We want a static/reproducible thing independent of upstream repo changes.
+COPY video2dataset /workspace/video2dataset
 RUN cd video2dataset && pip install -e .
 RUN pip install opencv-python==4.8.0.74
 
