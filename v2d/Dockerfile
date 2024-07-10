@@ -18,16 +18,13 @@ RUN apt-get update && apt-get install -y \
     python3-venv \
     git
 
-# RUN git clone https://github.com/swiss-ai/video2dataset.git
-# RUN git clone -b opencv-2.4 --single-branch https://github.com/swiss-ai/video2dataset.git
-
 # Create and activate a virtual environment
 ENV VIRTUAL_ENV=/opt/venv
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # install decord
-COPY decord/ /workspace/decord
+RUN git clone --recursive https://github.com/dmlc/decord
 RUN cd decord \
     && mkdir build && cd build \
     # && cmake .. -DUSE_CUDA=ON -DCMAKE_BUILD_TYPE=Release \
@@ -40,7 +37,7 @@ RUN cd decord/python && python3 setup.py install
 RUN python -m pip install --upgrade pip
 
 # Install v2d library
-COPY video2dataset/ /workspace/video2dataset
+RUN git clone -b kdu/todi --single-branch https://github.com/swiss-ai/video2dataset.git
 RUN cd video2dataset && pip install -e .
 RUN pip install opencv-python==4.8.0.74
 

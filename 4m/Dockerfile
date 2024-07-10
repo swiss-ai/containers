@@ -9,9 +9,12 @@ RUN apt-get update && apt-get install -y \
 python3-pip \
 python3-venv \
 git
+
 WORKDIR /workspace
-COPY ml-4m /workspace/ml-4m
+RUN git clone https://github.com/swiss-ai/ml-4m.git
 WORKDIR /workspace/ml-4m
+# Checkout a version of ml-4m which we know is stable for installing the library. REMOVE THIS if you want to install from the updated ml-4m repo.
+RUN git checkout 4c2c9a56a9e2cd3e94316e766028c71bb6e248d8
 RUN pip install -e .
 
 # install specific packages for yolo and fixing opencv
