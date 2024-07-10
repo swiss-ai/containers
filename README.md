@@ -3,6 +3,10 @@ Since using the CSCS cluster often requires starting a compute node with a conta
 
 Hopefully, keeping a repository of the Dockerfiles/etc. for each image helps (a) keep provenance of the Dockerfiles, so that unexpected changes don't sneak up on us/we have reproducible results, and (b) we have one place in which we can reference and leverage the Dockerfiles/setups while building new ones.
 
+## Cloning
+Run `git clone --recurse-submodules -j8 git@github.com:swiss-ai/containers.git` (make sure you have the `--recurse-submodules` because some images may require copying over another git repo saved as a submodule in this one).
+
+
 ## The Basics
 Each subdirectory contains at least (a) a `Dockerfile` and (b) a `.toml` file.
 The Dockerfile is used to define the Docker image. The `.toml` file is used to point to the image which is used to create a newly constructed container for a new job on a compute node.
