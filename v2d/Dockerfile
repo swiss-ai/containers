@@ -25,12 +25,12 @@ RUN apt-get install -y libnvidia-decode-525-server
 # RUN python3 -m venv $VIRTUAL_ENV
 # ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Install torch and torchaudio - the builtin torch does not have torchaudio so we have to try to install versions which are compatible with each other.
-# unfortunately this still fails with v2d - 
-# RuntimeError: Failed to import transformers.models.blip_2.modeling_blip_2 because of the following error (look up to see its traceback):
-# Failed to import transformers.generation.utils because of the following error (look up to see its traceback):
-#    /usr/local/lib/python3.10/dist-packages/transformer_engine_extensions.cpython-310-aarch64-linux-gnu.so: undefined symbol: _ZN2at4_ops5zeros4callEN3c108ArrayRefINS2_6SymIntEEENS2_8optionalINS2_10ScalarTypeEEENS6_INS2_6LayoutEEENS6_INS2_6DeviceEEENS6_IbEE
-RUN pip3 install --index-url https://download.pytorch.org/whl/nightly/cu124 torch torchaudio torchvision
+# # Install torch and torchaudio - the builtin torch does not have torchaudio so we have to try to install versions which are compatible with each other.
+# # unfortunately this still fails with v2d - 
+# # RuntimeError: Failed to import transformers.models.blip_2.modeling_blip_2 because of the following error (look up to see its traceback):
+# # Failed to import transformers.generation.utils because of the following error (look up to see its traceback):
+# #    /usr/local/lib/python3.10/dist-packages/transformer_engine_extensions.cpython-310-aarch64-linux-gnu.so: undefined symbol: _ZN2at4_ops5zeros4callEN3c108ArrayRefINS2_6SymIntEEENS2_8optionalINS2_10ScalarTypeEEENS6_INS2_6LayoutEEENS6_INS2_6DeviceEEENS6_IbEE
+# RUN pip3 install --index-url https://download.pytorch.org/whl/nightly/cu124 torch torchaudio torchvision
 
 # install decord
 ENV NVIDIA_DRIVER_CAPABILITIES=all
@@ -51,12 +51,50 @@ RUN cd decord/python && python3 setup.py install
 RUN python -m pip install --upgrade pip
 
 # Install v2d library
+RUN pip uninstall -y torchtext && \
+    git clone -b v0.17.1 https://github.com/pytorch/text torchtext && \
+    cd torchtext && \
+    git submodule update --init --recursive && \
+    python setup.py clean install
+
+RUN git clone -b v2.2.0 https://github.com/pytorch/audio.git && \
+    cd audio && \
+    TORCH_CUDA_ARCH_LIST="9.0" python setup.py install
+
 # Better to COPY than git clone because git clone is unaware when the repo changes. We want a static/reproducible thing independent of upstream repo changes.
 COPY video2dataset /workspace/video2dataset
-RUN cd video2dataset && pip install --upgrade --upgrade-strategy only-if-needed -e .
+# RUN cd video2dataset && pip install --upgrade --upgrade-strategy only-if-needed -e .
+RUN cd video2dataset && \
+    TORCH_VER=$(python -c 'import torch; print(torch.__version__)') && \
+    AUDIO_VER=$(python -c 'import torchaudio; print(torchaudio.__version__)') && \
+    sed -i "s/torch==.*/torch==${TORCH_VER}/" requirements.txt && \
+    sed -i "s/torchaudio==.*/torchaudio==${AUDIO_VER}/" requirements.txt && \
+    pip install -r requirements.txt \
+    && pip install -e .
+
 RUN pip install opencv-python==4.8.0.74
 
-RUN pip uninstall transformer-engine -y
+RUN pip uninstall ctranslate2 -y
+
+RUN git clone --recursive https://github.com/OpenNMT/CTranslate2.git
+RUN cd CTranslate2 \
+    # && git checkout 59c7dda738892df7a064aa360d0e45a4c3840b07 \
+    && mkdir build && cd build \
+    && cmake .. -DWITH_CUDA=ON -DWITH_CUDNN=ON -DWITH_MKL=OFF -DOPENMP_RUNTIME=COMP -DCMAKE_BUILD_TYPE=Release \
+    && make -j4 \
+    && make install \
+    && ldconfig \
+    && cd ..
+
+ENV CTRANSLATE2_ROOT=/workspace/CTranslate2/build
+
+RUN cd /workspace/CTranslate2/python \
+    && CTRANSLATE2_ROOT=$CTRANSLATE2_ROOT pip install -e .
+ 
+# Comment out a version checker thing that dislikes the nightly version we use from the container.
+RUN sed -i '33,$s/^[^#]/#&/' /usr/local/lib/python3.10/dist-packages/pyannote/audio/utils/version.py
+
+
 
 # # Activate the virtualenv when starting the container.
 # CMD ["/bin/bash", "-c", "source /opt/venv/bin/activate && exec /bin/bash"]

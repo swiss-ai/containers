@@ -1,5 +1,12 @@
-image = "/store/swissai/a08/containers/v2d/v2d_image.sqsh"
- 
+# image = "/store/swissai/a08/containers/v2d/v2d_image.sqsh"
+# image = "/store/swissai/a08/containers/v2d/v2d_pre_decord.sqsh"
+# image = "/store/swissai/a08/containers/v2d/v2d_image_2407_free.sqsh"
+# image = "/store/swissai/a08/containers/v2d/v2d_image_base.sqsh"
+# image = "/store/swissai/a08/containers/v2d/v2d_image_2401base.sqsh"
+# image = "/store/swissai/a08/containers/v2d/v2d_image_n2.sqsh"
+# image = "/store/swissai/a08/containers/v2d/v2d_image_0108-m3.sqsh"
+image = "/store/swissai/a08/containers/v2d/v2d_image_whisperX.sqsh"
+
 mounts = ["/capstor", "/users", "/store"]
  
 writable = true
