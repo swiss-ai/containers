@@ -78,7 +78,8 @@ RUN pip uninstall ctranslate2 -y
 
 RUN git clone --recursive https://github.com/OpenNMT/CTranslate2.git
 RUN cd CTranslate2 \
-    # && git checkout 59c7dda738892df7a064aa360d0e45a4c3840b07 \
+    # this is the commit that worked in building things. Probably should pin it but if it breaks you know where to point it at.
+    # && git checkout 39f48f2e843df52245e6c857326e1115bca12b03 \  
     && mkdir build && cd build \
     && cmake .. -DWITH_CUDA=ON -DWITH_CUDNN=ON -DWITH_MKL=OFF -DOPENMP_RUNTIME=COMP -DCMAKE_BUILD_TYPE=Release \
     && make -j4 \
