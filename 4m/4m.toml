@@ -1,4 +1,5 @@
-image = "/store/swissai/a08/containers/4m/4m_image_peft.sqsh" # todi
+image = "/store/swissai/a08/containers/4m/4m_image_decord.sqsh" # todi
+# image = "/store/swissai/a08/containers/4m/4m_image_peft.sqsh" # todi
 # image = "/capstor/store/cscs/swissai/a08/containers/4m/4m_image_peft.sqsh"
 # image = "/capstor/store/cscs/swissai/a08/containers/4m/4m_image_bristen.sqsh" 
 mounts = ["/capstor", "/users", "/store"] # for todi

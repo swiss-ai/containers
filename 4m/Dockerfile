@@ -26,14 +26,44 @@ RUN git clone https://github.com/swiss-ai/ml-4m.git
 WORKDIR /workspace/ml-4m
 
 # Checkout a version of ml-4m which we know is stable for installing the library. REMOVE THIS if you want to install from the updated ml-4m repo.
-RUN git checkout b8d794cd132e942582b837ffd7ddc6bf204692a3
+# RUN git checkout b8d794cd132e942582b837ffd7ddc6bf204692a3
 RUN pip install -e .
 
 # install specific packages for yolo and fixing opencv
 RUN pip install ultralytics peft opencv-python==4.8.0.74
 
+# # install decord
+WORKDIR /workspace
+ENV NVIDIA_DRIVER_CAPABILITIES=all
+# # RUN ln -s /usr/lib/x86_64-linux-gnu/libnvcuvid.so.1 /usr/local/cuda/lib64/libnvcuvid.so
+RUN ln -s /usr/lib/aarch64-linux-gnu/libnvcuvid.so.1 /usr/local/cuda/lib64/libnvcuvid.so
+RUN git clone --recursive https://github.com/dmlc/decord
+# Go to fixed commit (last commit we tested this on) and then build it.
+RUN cd decord \
+    && git checkout d2e56190286ae394032a8141885f76d5372bd44b \
+    && mkdir build
+# Attempt to install decord from source (fails with "Cannot find libnvcuvid" error)
+# RUN cd build && cmake .. -DUSE_CUDA=ON -DCMAKE_BUILD_TYPE=Release \
+#     # Use this if we don't want GPU acceleration
+#     # && cmake .. -DUSE_CUDA=0 -DCMAKE_BUILD_TYPE=Release \ 
+#     && make
+# # setup python bindings for decord
+# RUN cd decord/python && python3 setup.py install
+
+# Copy script to install decord at container runtime.
+COPY decord_runtime.sh /workspace/decord_runtime.sh
+RUN chmod +x /workspace/decord_runtime.sh
+# ENTRYPOINT ["source", "/workspace/decord_runtime.sh"]
+
 # Activate the virtualenv when starting the container.
 # CMD ["/bin/bash", "-c", "source /opt/venv/bin/activate && exec /bin/bash"]
+
+### FIX of opencv issue where opencv version wasnt using ffmpeg -> couldn't open video
+#RUN pip uninstall opencv -y
+#RUN pip uninstall opencv-python -y
+#RUN pip uninstall opencv-python-headless -y
+#RUN pip install opencv-python --user
+#RUN pip install opencv-python-headless --user
 
 ##############
 # HOW TO USE #
@@ -55,3 +85,4 @@ RUN pip install ultralytics peft opencv-python==4.8.0.74
 #       Note: we point to the .toml file, which itself sets the image to be hardcoded as 4m_image.sqsh.
 #   b. For a one-time run: run `srun --overlap --jobid <JOBID> --environment=/store/swissai/a08/containers/4m/4m.toml --container-workdir=$PWD <YOUR COMMAND HERE>`
 #   c. For something with sbatch: TODO (but probably something like this https://github.com/swiss-ai/pretrain/blob/add-llama3-large-config/slurm/run_llama_large_baseline.sh)
+# 5. Run `source /workspace/decord_runtime.sh` to install GPU-accelerated decord at runtime.
