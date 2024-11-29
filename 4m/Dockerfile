@@ -1,5 +1,6 @@
 # Boilerplate Swiss AI stuff
-FROM nvcr.io/nvidia/pytorch:24.01-py3
+# FROM nvcr.io/nvidia/pytorch:24.01-py3
+FROM nvcr.io/nvidia/pytorch:24.05-py3
  
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -26,7 +27,7 @@ RUN git clone https://github.com/swiss-ai/ml-4m.git
 WORKDIR /workspace/ml-4m
 
 # Checkout a version of ml-4m which we know is stable for installing the library. REMOVE THIS if you want to install from the updated ml-4m repo.
-# RUN git checkout b8d794cd132e942582b837ffd7ddc6bf204692a3
+RUN git checkout 3d6b7fb8d1a4afdbda8265f2f764ba4996b2de07
 RUN pip install -e .
 
 # install specific packages for yolo and fixing opencv
@@ -42,8 +43,8 @@ RUN git clone --recursive https://github.com/dmlc/decord
 RUN cd decord \
     && git checkout d2e56190286ae394032a8141885f76d5372bd44b \
     && mkdir build
-# Attempt to install decord from source (fails with "Cannot find libnvcuvid" error)
-# RUN cd build && cmake .. -DUSE_CUDA=ON -DCMAKE_BUILD_TYPE=Release \
+# # Attempt to install decord from source (fails with "Cannot find libnvcuvid" error)
+# RUN cd decord/build && cmake .. -DUSE_CUDA=ON -DCMAKE_BUILD_TYPE=Release \
 #     # Use this if we don't want GPU acceleration
 #     # && cmake .. -DUSE_CUDA=0 -DCMAKE_BUILD_TYPE=Release \ 
 #     && make
@@ -53,7 +54,7 @@ RUN cd decord \
 # Copy script to install decord at container runtime.
 COPY decord_runtime.sh /workspace/decord_runtime.sh
 RUN chmod +x /workspace/decord_runtime.sh
-# ENTRYPOINT ["source", "/workspace/decord_runtime.sh"]
+ENTRYPOINT ["source", "/workspace/decord_runtime.sh"]
 
 # Activate the virtualenv when starting the container.
 # CMD ["/bin/bash", "-c", "source /opt/venv/bin/activate && exec /bin/bash"]
